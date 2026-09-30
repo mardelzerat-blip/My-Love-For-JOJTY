@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Princess Tale Game 👑✨</title>
+  <style>
+    :root {
+      --primary: #ff7597;
+      --secondary: #ffb3c1;
+      --bg-gradient: linear-gradient(135deg, #ffccd5 0%, #ffb3c1 50%, #ffe5ec 100%);
+      --accent: #ff0054;
+      --card-bg: rgba(255, 255, 255, 0.98);
+      --text-color: #4a2e35;
+      --subtext-color: #633b48;
+    }
+
+    body.dark-mode {
+      --primary: #ff477e;
+      --secondary: #7209b7;
+      --bg-gradient: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%);
+      --accent: #f72585;
+      --card-bg: rgba(20, 25, 45, 0.98);
+      --text-color: #f8f9fa;
+      --subtext-color: #e0e1dd;
+    }
+
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 390px;
+      height: 670px;
+      background: var(--card-bg);
+      border: 4px solid rgba(255, 255, 255, 0.5);
+      border-radius: 35px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-controls {
+      position: absolute;
+      top: 15px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between;
+      z-index: 1000;
+    }
+
+    .icon-btn {
+      background: #fff;
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      width: 42px; height: 42px;
+      font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    .stage {
+      display: none;
+      width: 100%; height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 15px 20px 15px;
+      position: absolute; top: 0; left: 0;
+      text-align: center;
+    }
+
+    .stage.active { display: flex !important; }
+
+    h1, h2 { color: var(--accent); font-weight: 800; margin-bottom: 8px; }
+    p { font-size: 0.95rem; line-height: 1.5; color: var(--subtext-color); margin-bottom: 12px; }
+
+    .btn {
+      background: linear-gradient(45deg, #ff477e, #ff7597);
+      color: white; border: none;
+      padding: 14px 28px; font-size: 1.05rem; font-weight: bold;
+      border-radius: 50px; cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 71, 126, 0.35);
+      margin: 5px; display: inline-block;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(0.95); }
+
+    .btn-secondary {
+      background: rgba(255, 229, 236, 0.95);
+      color: var(--accent);
+      border: 2px solid var(--secondary);
+      box-shadow: none;
+    }
+
+    .control-bar {
+      display: flex; justify-content: space-between;
+      width: 100%; align-items: center; margin-bottom: 10px;
+    }
+
+    .btn-small { padding: 8px 14px; font-size: 0.85rem; border-radius: 20px; }
+
+    canvas {
+      border-radius: 24px;
+      border: 3px solid var(--secondary);
+      background: #fff;
+    }
+
+    .score-board {
+      font-size: 0.88rem; font-weight: 700;
+      color: var(--accent); background: rgba(255, 240, 243, 0.95);
+      padding: 6px 12px; border-radius: 15px; border: 1px solid var(--secondary);
+    }
+
+    textarea, input[type="text"] {
+      width: 92%; border: 2px solid var(--secondary);
+      border-radius: 18px; padding: 12px; font-size: 0.95rem;
+      outline: none; background: #fff; color: #333; text-align: center;
+    }
+    textarea { height: 90px; resize: none; }
+
+    .modal-overlay {
+      display: none; position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+      z-index: 2000; flex-direction: column;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+
+    .modal-box {
+      background: var(--card-bg); border: 3px solid var(--primary);
+      border-radius: 28px; padding: 22px; max-width: 320px; text-align: center;
+    }
+
+    .dress-preview { font-size: 75px; line-height: 1; margin: 10px 0; }
+    .dress-options { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+    .opt-btn { background: #fff; border: 2px solid var(--secondary); border-radius: 12px; padding: 8px 12px; font-size: 22px; cursor: pointer; }
+
+    .meter-bar { width: 100%; height: 22px; background: #ffe5ec; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); margin: 12px 0; }
+    .meter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff7597, #ff0054); transition: width 0.05s ease; }
+
+    .memory-card {
+      background: rgba(255,255,255,0.95); border-radius: 20px;
+      padding: 15px; border: 2px solid var(--secondary);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1); width: 90%;
+    }
+    .memory-icon { font-size: 55px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-controls">
+    <button class="icon-btn" onclick="toggleSound()">🔊</button>
+    <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+  </div>
+
+  <!-- Stage 1 -->
+  <div class="stage active" id="stage1">
+    <div style="margin-top: 20px;">
+      <div style="font-size: 65px;">👑✨</div>
+      <h1 style="font-size: 1.8rem; margin-top: 10px;">مغامرة أميرتي!</h1>
+      <p style="padding: 0 10px;">أهلاً بأجمل وأرق أميرة في الدنيا كلها 💕<br>عملتلك مغامرات عسولة اوي ومخصوصة عشانك، وفي نهاية كل مرحلة في كلمة من جوه قلبي مستنياكي 🌚🌸</p>
+    </div>
+    <button class="btn" onclick="showTutorial(2)">ابدأي المغامرة 💖</button>
+  </div>
+
+  <!-- Stage 2 -->
+  <div class="stage" id="stage2">
+    <div class="control-bar">
+      <button class="btn btn-small btn-secondary" onclick="goToStage(2)">إعادة 🔄</button>
+      <div class="score-board">المرحلة 1 🐣 | النتيجة: <span id="scoreVal2">0</span></div>
+      <button class="btn btn-small btn-secondary" onclick="skipStage(3)">اللي بعدو ⏭️</button>
+    </div>
+    <canvas id="chickCanvas" width="330" height="450"></canvas>
+  </div>
+
+  <!-- Stage 3 -->
+  <div class="stage" id="stage3">
+    <div class="control-bar">
+      <button class="btn btn-small btn-secondary" onclick="goToStage(3)">إعادة 🔄</button>
+      <div class="score-board">المرحلة 2 ⛵ | النتيجة: <span id="scoreVal3">0</span></div>
+      <button class="btn btn-small btn-secondary" onclick="skipStage(4)">اللي بعدو ⏭️</button>
+    </div>
+    <canvas id="moanaCanvas" width="330" height="450"></canvas>
+  </div>
+
+  <!-- Stage 4 -->
+  <div class="stage" id="stage4">
+    <div class="control-bar">
+      <button class="btn btn-small btn-secondary" onclick="goToStage(4)">إعادة 🔄</button>
+      <div class="score-board">المرحلة 3 🥘 | النتيجة: <span id="scoreVal4">0</span></div>
+      <button class="btn btn-small btn-secondary" onclick="skipStage(5)">اللي بعدو ⏭️</button>
+    </div>
+    <canvas id="foodCanvas" width="330" height="450"></canvas>
+  </div>
+
+  <!-- Stage 5 -->
+  <div class="stage" id="stage5">
+    <div class="control-bar">
+      <button class="btn btn-small btn-secondary" onclick="goToStage(5)">إعادة 🔄</button>
+      <div class="score-board">المرحلة 4 🏮 | النتيجة: <span id="scoreVal5">0</span></div>
+      <button class="btn btn-small btn-secondary" onclick="skipStage(6)">اللي بعدو ⏭️</button>
+    </div>
+    <canvas id="rapunzelCanvas" width="330" height="450"></canvas>
+  </div>
+
+  <!-- Stage 6 -->
+  <div class="stage" id="stage6">
+    <div>
+      <h2>غرفة تجهيز الملكة 👗👑</h2>
+      <p>اكتملت المراحل! اختاري إطلالتك الملكية✨</p>
+    </div>
+    <div class="dress-preview" id="princessAvatar">👑👸🏼👗</div>
+    <div style="width: 100%;">
+      <p style="font-size: 0.85rem; margin-bottom: 4px;">اختاري التاج:</p>
+      <div class="dress-options">
+        <button class="opt-btn" onclick="changeCrown('👑')">👑</button>
+        <button class="opt-btn" onclick="changeCrown('🎀')">🎀</button>
+        <button class="opt-btn" onclick="changeCrown('🌸')">🌸</button>
+      </div>
+      <p style="font-size: 0.85rem; margin-bottom: 4px;">اختاري الفستان:</p>
+      <div class="dress-options">
+        <button class="opt-btn" onclick="changeDress('👗')">👗</button>
+        <button class="opt-btn" onclick="changeDress('👘')">👘</button>
+        <button class="opt-btn" onclick="changeDress('🥻')">🥻</button>
+      </div>
+    </div>
+    <button class="btn" style="margin-bottom: 10px;" onclick="goToStage(7)">جاهزة للذكريات ✨🚀</button>
+  </div>
+
+  <!-- Stage 7 -->
+  <div class="stage" id="stage7">
+    <div>
+      <h2>معرض ذكرياتنا 📸✨</h2>
+      <p>لحظات حلوة ومميزة في رحلتنا 💕</p>
+    </div>
+    <div class="memory-card">
+      <div class="memory-icon" id="memIcon">🌸</div>
+      <p id="memText" style="font-weight: bold; color: #ff0054; min-height: 45px;">ذكرياتنا الحلوة...</p>
+    </div>
+    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+      <button class="btn btn-secondary btn-small" onclick="prevMemory()">السابقة 👈</button>
+      <button class="btn btn-small" onclick="nextMemory()">التالية 👉</button>
+    </div>
+    <button class="btn" style="margin-bottom: 10px;" onclick="goToStage(8)">القفل السرّي 🔒</button>
+  </div>
+
+  <!-- Stage 8 -->
+  <div class="stage" id="stage8">
+    <div>
+      <div style="font-size: 50px;">🔒🔑</div>
+      <h2>كلمة السر الخاصة!</h2>
+      <p>ادخلي تاريخنا المميز بينّا 💖</p>
+      <input type="text" id="secretInput" placeholder="اكتبي التاريخ هنا (مثال: 3/4/2026)">
+      <p id="secretError" style="color: #ff0054; font-size: 0.82rem; display: none; margin-top: 6px;">تاريخ مش مظبوط يا روحي! فكري تاني 🙈</p>
+      <button class="btn btn-secondary btn-small" style="margin-top: 10px;" onclick="document.getElementById('hintText').style.display='block'">تلميح من مصطفى 💡</button>
+      <p id="hintText" style="display: none; font-size: 0.82rem; color: #e63946; margin-top: 6px;">أحلى يوم في سنة 2026 اتكتب فيه بداية كل حاجة حلوة 😉✨</p>
+    </div>
+    <button class="btn" style="margin-bottom: 20px;" onclick="checkSecret()">افتحي القفل 💖</button>
+  </div>
+
+  <!-- Stage 9 -->
+  <div class="stage" id="stage9">
+    <div style="margin-top: 5px;">
+      <div style="font-size: 35px;">📈💖</div>
+      <h2>مقياس حب مصطفى ليكي!</h2>
+      <div class="meter-bar"><div class="meter-fill" id="meterFill"></div></div>
+      <p id="meterText" style="font-weight: bold; color: var(--accent);">جاري الحساب...</p>
+    </div>
+    <div id="finalMessageBlock" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+      <button class="btn btn-secondary btn-small" style="margin-bottom: 8px;" onclick="showReasonWhy()">ليه بحبك؟ (اضغطي هنا 💌)</button>
+      <p style="margin-bottom: 4px; font-size: 0.85rem;">اكتبيلي رسالة من قلبك وخذي Screenshot أبعتيهالي 📸💖</p>
+      <textarea id="princessMessage" placeholder="اكتبي رسالتكِ هنا يا روح قلبي..."></textarea>
+      <button class="btn" style="margin-top: 6px;" onclick="alert('خدتي لقطة الشاشة؟ أبعتيهالي على طول! 📸💖')">جاهزة للإرسال 📸</button>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div class="modal-overlay" id="tutorialModal">
+    <div class="modal-box">
+      <div style="font-size: 45px;" id="tutIcon">🐣</div>
+      <h2 id="tutTitle" style="margin-top: 5px;">كيفية اللعب</h2>
+      <p id="tutText" style="margin: 10px 0 15px 0;">المضمون...</p>
+      <button class="btn" onclick="startStageAfterTutorial()">انطلقي يا أميرتي 🚀</button>
+    </div>
+  </div>
+
+  <!-- Pop-up Love Message Box -->
+  <div class="modal-overlay" id="messageModal">
+    <div class="modal-box">
+      <div style="font-size: 40px;">💌</div>
+      <h2 id="modalTitle" style="font-size: 1.1rem; margin: 6px 0;">رسالة لقلبكِ ✨</h2>
+      <p id="modalText" style="font-size: 0.9rem; margin-bottom: 12px; max-height: 180px; overflow-y: auto; text-align: right;"></p>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 5px;">
+        <button class="btn btn-secondary btn-small" onclick="retryGame()">إعادة الدور 🔄</button>
+        <button class="btn btn-small" onclick="nextStageFromModal()">المرحلة التالية 💖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reason Why Modal -->
+  <div class="modal-overlay" id="reasonModal">
+    <div class="modal-box">
+      <div style="font-size: 40px;">💌✨</div>
+      <h2 style="font-size: 1.1rem; margin: 6px 0;">ليه بحبك؟</h2>
+      <p id="reasonText" style="font-size: 0.95rem; margin: 12px 0; color: #ff0054; font-weight: bold;"></p>
+      <button class="btn btn-small" onclick="document.getElementById('reasonModal').style.display='none'">حبيبي تسلملي 💖</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let soundEnabled = true;
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    event.target.innerText = soundEnabled ? '🔊' : '🔇';
+  }
+  function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+  }
+
+  const myMessages = {
+    afterChick: {
+      title: "أشطر كتكوتة في الدنيا كلها! 🐣💖",
+      text: "والله كدا كدا أشطر كتكوتة، ومهما كان السكور اللي جبتيه فهو أعلى سكور عشان الملكة بتاعتي هي اللي لعبت بحبككك ينور عيني بحبككك اوي وبحبك اوي وبحبك اوي وبحبككككك وبحب وجودك جمبي بحب كل يوم بصحى فيه وانا عايز ابعتلك صباح الخير بس بحبك اوي ينور عيني وربنا يخليكي ليا اوي اوي يارب يحبيبي."
+    },
+    afterMoana: {
+      title: "حمد الله عالسلامة يا أحلى أميرة! ⛵🌸",
+      text: "بحبك بحبك بحبك ومهما قولت مش هوفيكي حقك من كتر ما أنا كل شوية بحس إني بحبك أكتر، وبقول يا بختي بيكي أنتي أجمل نعمة ربنا أنعم عليّ بيها في حياتي والله انا بحبك اوي يعيوني وعمري ما هبطل احبك هفضل حبي ليكي بيزيدبس اكتر واكتر واكتر 🌟"
+    },
+    afterFood: {
+      title: "بالهنا والشفا على قلب أجمل كتكوتة يناااس🦐🥘",
+      text: "عارف إن اللعبة فيها كل الأكلات اللي بتحبيها بس عارفة؟ كل ده ولا ييجي حاجة في حلاوتك وطعامتك أنا بحبك اوي ونفسي أأكلك كل ده بايدي انا واكون احن انسان عليكي في الدنيا كلها ينور عيني💖😋"
+    },
+    afterRapunzel: {
+      title: "يا أجمل روبانزل في الكون! ✨💜",
+      text: "بحبك اوي يا حبيبي والله وضحكتك بس عندي بالدنيا كلها وعشان كده عملتلك اللعبة دي مخصوص عشان أفرح قلبك ودلوقتي جه الدور عليكِ تكتبيلي حاجة حلوة من قلبك 🌚💖"
+    }
+  };
+
+  const tutorials = {
+    2: { icon: "🐣", title: "مرحلة الكتكوت", text: "حرّكي بصباعك شمال ويمين عشان تنزلي على السحب الوردي وجمعي سكور!" },
+    3: { icon: "⛵", title: "رحلة موانا المائية", text: "حرّكي القارب شمال ويمين عشان تتفادي الصخور وتجمعي القلوب 💖!" },
+    4: { icon: "🥘", title: "سفرة الملكة المفضلة", text: "حرّكي الطبق عشان تجمعي أكلاتك المفضلة (سي فود 🦐، حواوشي 🥙، بطاطس 🍗، ورق عنب 🍃) وابعدي عن الخضار المسلوق 🥦!" },
+    5: { icon: "🏮", title: "فوانيس روبانزل", text: "حرّكي روبانزل شمال ويمين لتجميع الفوانيس 🏮 وتجنبي الخفافيش الساقطة!" }
+  };
+
+  const loveReasons = [
+    "عشان ضحكتك بتنور دنيتي كلها لما بشوفها ✨",
+    "عشان أنتي أرق وأحن كتكوتة قابلتها في حياتي 💕",
+    "عشان تفاصيلك الصغنونة وجمالك اللي ملوش مثيل 🌸",
+    "عشان كل يوم معاكي بحس إنه أحلى يوم في عمري 👑",
+    "عشان أنتي السند والنعمة الكبيرة اللي ربنا رزقني بيها 💖",
+    "عشان وجودك جمبي بيديني أمان وراحة بال مش عند حد 🕊️"
+  ];
+
+  const memoryLaneData = [
+    { icon: "✨👑", text: "أول يوم بدأت فيه حكايتنا والمكان اللي نور بوجودك فيه" },
+    { icon: "🌹💖", text: "كل كلمة حلوة وكل ضحكة خرجت من قلبك وغيرت يومي للأحسن" },
+    { icon: "🍕😋", text: "الأكلات واللحظات الكيوت اللي بنشاركها مع بعض دايماً" },
+    { icon: "🏮💜", text: "وعودي ليكي إني هفضل جمبك وحابب كل حاجة فيكي طول العمر" }
+  ];
+
+  let currentMemoryIdx = 0;
+  let currentStageNumber = 1;
+  let nextStageTarget = 3;
+  let activeLoop = null;
+  let currentCrown = '👑';
+  let currentDress = '👗';
+
+  function showTutorial(stageNum) {
+    currentStageNumber = stageNum;
+    document.getElementById('tutIcon').innerText = tutorials[stageNum].icon;
+    document.getElementById('tutTitle').innerText = tutorials[stageNum].title;
+    document.getElementById('tutText').innerText = tutorials[stageNum].text;
+    document.getElementById('tutorialModal').style.display = 'flex';
+  }
+
+  function startStageAfterTutorial() {
+    document.getElementById('tutorialModal').style.display = 'none';
+    goToStage(currentStageNumber);
+  }
+
+  function goToStage(stageNum) {
+    currentStageNumber = stageNum;
+    if (activeLoop) cancelAnimationFrame(activeLoop);
+
+    document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+    document.getElementById('stage' + stageNum).classList.add('active');
+
+    if (stageNum === 2) startChickGame();
+    if (stageNum === 3) startMoanaGame();
+    if (stageNum === 4) startFoodGame();
+    if (stageNum === 5) startRapunzelGame();
+    if (stageNum === 7) updateMemoryCard();
+    if (stageNum === 9) runLoveMeter();
+  }
+
+  function skipStage(nextStage) {
+    goToStage(nextStage);
+  }
+
+  function retryGame() {
+    document.getElementById('messageModal').style.display = 'none';
+    goToStage(currentStageNumber);
+  }
+
+  function showLoveMessage(key, nextStage) {
+    nextStageTarget = nextStage;
+    document.getElementById('modalTitle').innerText = myMessages[key].title;
+    document.getElementById('modalText').innerText = myMessages[key].text;
+    document.getElementById('messageModal').style.display = 'flex';
+  }
+
+  function nextStageFromModal() {
+    document.getElementById('messageModal').style.display = 'none';
+    if (nextStageTarget <= 5) showTutorial(nextStageTarget);
+    else goToStage(nextStageTarget);
+  }
+
+  /* GAME LOOPS */
+  function startChickGame() {
+    const canvas = document.getElementById('chickCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let x = canvas.width / 2;
+    canvas.onpointermove = (e) => { x = e.offsetX; };
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "35px sans-serif";
+      ctx.fillText("🐣", x - 17, 380);
+      score++;
+      document.getElementById('scoreVal2').innerText = score;
+      if (score >= 100) { showLoveMessage('afterChick', 3); return; }
+      activeLoop = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function startMoanaGame() {
+    const canvas = document.getElementById('moanaCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let x = canvas.width / 2;
+    canvas.onpointermove = (e) => { x = e.offsetX; };
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "35px sans-serif";
+      ctx.fillText("⛵", x - 17, 380);
+      score++;
+      document.getElementById('scoreVal3').innerText = score;
+      if (score >= 100) { showLoveMessage('afterMoana', 4); return; }
+      activeLoop = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function startFoodGame() {
+    const canvas = document.getElementById('foodCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let x = canvas.width / 2;
+    canvas.onpointermove = (e) => { x = e.offsetX; };
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "35px sans-serif";
+      ctx.fillText("🥘", x - 17, 380);
+      score++;
+      document.getElementById('scoreVal4').innerText = score;
+      if (score >= 100) { showLoveMessage('afterFood', 5); return; }
+      activeLoop = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function startRapunzelGame() {
+    const canvas = document.getElementById('rapunzelCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0;
+    let x = canvas.width / 2;
+    canvas.onpointermove = (e) => { x = e.offsetX; };
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "35px sans-serif";
+      ctx.fillText("👸🏼", x - 17, 380);
+      score++;
+      document.getElementById('scoreVal5').innerText = score;
+      if (score >= 100) { showLoveMessage('afterRapunzel', 6); return; }
+      activeLoop = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  /* DRESS UP */
+  functio
